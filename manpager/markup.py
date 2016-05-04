@@ -5,20 +5,26 @@ The functions in this module format text according
 to roff syntax, which is used in manual pages.
 """
 
+from __future__ import division
+from collections import OrderedDict
 from functools import partial
 from re import compile, MULTILINE
+
 
 def listmap(func, list):
     """the built-in map function, returning a tuple instead of an iterable"""
     return tuple(func(element) for element in list)
 
+
 def bold(text):
     """formats a span of running text bold"""
     return r'\fB{}\fP'.format(text)
 
+
 def italic(text):
     """formats a span of running text italic"""
     return r'\fI{}\fP'.format(text)
+
 
 class OverrideWrapper(object):
     """A generic wrapper that can selectively modify attributes of the wrapped object.
@@ -38,20 +44,19 @@ class OverrideWrapper(object):
         return type(name, (cls, ), kw)
 
     def __getattribute__(self, name):
-        original = getattr(super().__getattribute__('wrapped'), name)
+        original = getattr(super(OverrideWrapper, self).__getattribute__('wrapped'), name)
         if original:
             try:
-                return super().__getattribute__(name)(original)
+                return super(OverrideWrapper, self).__getattribute__(name)(original)
             except AttributeError:
                 return original
+
 
 class FormatWrapper(OverrideWrapper):
     """Wrap an Action to format option strings bold and metavar italic."""
     option_strings = staticmethod(partial(listmap, bold))
     metavar = staticmethod(italic)
 
-
-from collections import OrderedDict
 
 class MultiRegexReplacer(object):
     """Replace multiple regular expressions in one pass."""
@@ -80,6 +85,7 @@ class MultiRegexReplacer(object):
     def __call__(self, text):
         return self.expression.sub(self.replace, text)
 
+
 class Sanitizer(MultiRegexReplacer):
     """Sanitize strings for usage in manual pages.
 
@@ -93,7 +99,7 @@ class Sanitizer(MultiRegexReplacer):
         Top-level paragraphs are the default. Use ".IP" for indented sections.
         """
         paragraph = '\n' + paragraph + '\n'
-        super().__init__(OrderedDict((
+        super(Sanitizer, self).__init__(OrderedDict((
             ('-', '\\-'),
             ('\n\n+', paragraph),
             ('^\\s+|\\s+$', ''),

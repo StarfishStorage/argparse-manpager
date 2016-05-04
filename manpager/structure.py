@@ -5,7 +5,9 @@ The classes in this module model the headers, sections and subsections a manual 
 composed of, so that they can be dynamically created and modified, mainly by adding subelements.
 """
 
+from __future__ import division
 from datetime import date
+
 
 class Container(list):
     """
@@ -18,7 +20,7 @@ class Container(list):
 
     def __init__(self, title, *args):
         """Compose a title and adds all further given arguments after it."""
-        super().__init__((self.header(title), ) + args)
+        super(Container, self).__init__((self.header(title), ) + args)
 
     def __lshift__(self, element):
         """Add a subelement returning it."""
@@ -37,6 +39,7 @@ class Container(list):
         """The container is considered truthy if it contains anything more than the title."""
         return len(self) > 1
 
+
 class SectionContainer(Container):
     """
     These containers support adding subsections sing container /
@@ -52,18 +55,22 @@ class SectionContainer(Container):
         self << subsection
         return subsection
 
+
 class SS(Container):
     """subsection"""
     tag = 'SS'
+
 
 class SH(SectionContainer):
     """section"""
     tag = 'SH'
     subtype = SS
 
+
 class TH(SectionContainer):
     """title, i.e. a whole man page"""
     subtype = SH
+
     @staticmethod
     def header(title):
         return '.TH "{prog}" 1 {date} "" "General Commands Manual"'.format(

@@ -5,6 +5,7 @@ The classes in this module rank around implementing a HelpFormatter
 that composes a man page instead of a console help text.
 """
 
+from __future__ import division
 from argparse import HelpFormatter
 from functools import partial
 from .structure import TH, SH
@@ -12,6 +13,7 @@ from .markup import bold, italic, listmap, FormatWrapper, Sanitizer
 
 sanitize = Sanitizer()
 sanitize_indented = Sanitizer('.IP')
+
 
 class ManPage(TH):
     """
@@ -34,12 +36,12 @@ class ManPage(TH):
         description = SH('DESCRIPTION')
         options = SH('OPTIONS')
         remarks = SH('REMARKS')
-        super().__init__(suite if suite else prog, name, synopsis, description, options, remarks,
-                *(SH(title) << sanitize(content) for title, content in extrasections.items()))
+        super(ManPage, self).__init__(suite if suite else prog, name, synopsis, description, options, remarks,
+                                      *(SH(title) << sanitize(content) for title, content in extrasections.items()))
         if short_desc:
             name << "\\-" << short_desc
         self.options = options
-        self.next_section = iter((synopsis, description, remarks)).__next__
+        self.next_section = lambda: next(iter((synopsis, description, remarks)))
 
     def __lshift__(self, text):
         return self.next_section() << text
@@ -49,6 +51,7 @@ class ManPage(TH):
 
     def __str__(self):
         return '\n'.join(str(item) for item in self if item)
+
 
 class ManPageFormatter(HelpFormatter):
     """Help message formatter making the help text into a manual page.
@@ -61,7 +64,7 @@ class ManPageFormatter(HelpFormatter):
         """Remembers the program name and initializes the sect attribute to a fresh manpage.
 
         Further arguments will be passed to the ManPage constructor. See there for more options.
-        
+
         This class does by far not use all of the methods and attributes
         HelpFormatter does. The ones used only need the attribute _prog set.
         Not calling more complex parent methods or its constructor completely
@@ -86,7 +89,7 @@ class ManPageFormatter(HelpFormatter):
     def add_usage(self, usage, actions, groups, prefix=None):
         """Formats the usage and appends it to the current section."""
         self.sect << self._prog \
-                << self._format_actions_usage(listmap(FormatWrapper, actions), groups)
+                  << self._format_actions_usage(listmap(FormatWrapper, actions), groups)
 
     def add_arguments(self, actions):
         """Formats arguments and appends it to the current section."""
@@ -101,7 +104,7 @@ class ManPageFormatter(HelpFormatter):
         return str(self.sect)
 
     def _get_default_metavar_for_optional(self, action):
-        return italic(super()._get_default_metavar_for_optional(action))
+        return italic(super(ManPageFormatter, self)._get_default_metavar_for_optional(action))
 
     def _get_default_metavar_for_positional(self, action):
-        return italic(super()._get_default_metavar_for_positional(action))
+        return italic(super(ManPageFormatter, self)._get_default_metavar_for_positional(action))
