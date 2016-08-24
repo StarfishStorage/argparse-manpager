@@ -45,7 +45,7 @@ class OverrideWrapper(object):
 
     def __getattribute__(self, name):
         original = getattr(super(OverrideWrapper, self).__getattribute__('wrapped'), name)
-        if original:
+        if original is not None:
             try:
                 return super(OverrideWrapper, self).__getattribute__(name)(original)
             except AttributeError:
