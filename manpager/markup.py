@@ -103,4 +103,6 @@ class Sanitizer(MultiRegexReplacer):
             ('-', '\\-'),
             ('\n\n+', paragraph),
             ('^\\s+|\\s+$', ''),
-            ('\\s\\s+', ' '))))
+            ('\\s\\s+', ' '),
+            ('\\\\', '\\\\'),
+        )))
